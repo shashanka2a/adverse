@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Lenis from "@studio-freight/lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowDown, Clapperboard } from "lucide-react";
@@ -10,7 +9,11 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function HomePage() {
   const [countdown, setCountdown] = useState(5);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState<boolean>(() =>
+    typeof window !== "undefined"
+      ? window.matchMedia("(max-width: 767px)").matches
+      : false
+  );
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const topSprocketRef = useRef<HTMLDivElement | null>(null);
   const bottomSprocketRef = useRef<HTMLDivElement | null>(null);
@@ -21,11 +24,9 @@ export default function HomePage() {
   // Detect viewport changes to toggle mobile mode
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
-    const handleMatch = (event: MediaQueryListEvent | MediaQueryList) => {
-      setIsMobile(event.matches);
-    };
+    const handleMatch = (event: MediaQueryListEvent) => setIsMobile(event.matches);
 
-    handleMatch(mq);
+    setIsMobile(mq.matches);
     mq.addEventListener("change", handleMatch);
     return () => mq.removeEventListener("change", handleMatch);
   }, []);
@@ -44,7 +45,7 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Desktop-only interactions (Lenis + GSAP + custom cursor)
+  // Desktop-only interactions (GSAP + custom cursor)
   useEffect(() => {
     if (isMobile) return undefined;
 
@@ -112,21 +113,9 @@ export default function HomePage() {
     window.addEventListener("resize", generateSprockets);
     generateSprockets();
 
-    // Lenis + GSAP horizontal scroll
+    // GSAP horizontal scroll
     const progressBar = progressRef.current;
     const frameDisplay = frameRef.current;
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
-    });
-
-    lenis.on("scroll", ScrollTrigger.update);
-    const lenisRaf = (time: number) => {
-      lenis.raf(time * 1000);
-    };
-
-    gsap.ticker.add(lenisRaf);
-    gsap.ticker.lagSmoothing(0);
 
     const ctx = gsap.context(() => {
       const scrollTween = gsap.to(panels, {
@@ -194,8 +183,6 @@ export default function HomePage() {
       });
       document.removeEventListener("mousemove", moveCursor);
       window.removeEventListener("resize", generateSprockets);
-      lenis.destroy();
-      gsap.ticker.remove(lenisRaf);
       ctx.revert();
       ScrollTrigger.killAll();
     };
@@ -210,19 +197,6 @@ export default function HomePage() {
         : "flex h-full w-[600vw] relative will-change-transform",
     [isMobile]
   );
-
-  // Toggle body overflow based on mode to allow mobile scrolling
-  useEffect(() => {
-    if (isMobile) {
-      document.body.style.overflow = "auto";
-    } else {
-      document.body.style.overflow = "hidden";
-    }
-
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isMobile]);
 
   return (
     <main className="relative min-h-screen">
@@ -252,7 +226,9 @@ export default function HomePage() {
       </div>
 
       <div
-        className={`wrapper relative w-full ${isMobile ? "min-h-screen" : "h-screen overflow-hidden"}`}
+        className={`wrapper relative w-full ${
+          isMobile ? "min-h-screen overflow-visible" : "h-screen overflow-hidden"
+        }`}
         ref={wrapperRef}
       >
         <div className={trackClass}>
@@ -280,7 +256,7 @@ export default function HomePage() {
                   Production Mode: Active
                 </p>
                 <h2 className="text-3xl md:text-6xl font-display italic text-white/90">
-                  Cinematic B2B Marketing
+                  AI-Crafted Cinematic Marketing
                 </h2>
               </div>
             </div>
@@ -307,9 +283,9 @@ export default function HomePage() {
                 </div>
 
                 <h2 className="text-4xl md:text-7xl font-display leading-[1.1] mb-8 text-silver-screen opacity-0 reveal-text">
-                  Stop making &quot;content&quot;. <br />
+                  Upload your B-roll. <br />
                   <span className="italic text-celluloid-cream relative inline-block">
-                    Start making cinema.
+                    We turn it into cinema.
                     <svg className="absolute -bottom-2 left-0 w-full h-2 text-red-carpet" viewBox="0 0 100 10" preserveAspectRatio="none">
                       <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="2" fill="none" />
                     </svg>
@@ -317,7 +293,7 @@ export default function HomePage() {
                 </h2>
 
                 <p className="font-mono text-sm md:text-xl text-gray-400 max-w-2xl leading-relaxed opacity-0 reveal-text">
-                  Your B2B product isn&apos;t boring. Your presentation is. We apply French New Wave aesthetics to SaaS, Fintech, and Enterprise storytelling. Raw, honest, and impossible to ignore.
+                  Drop in B-roll from your brand or product. We handle scripting, AI voiceovers, AI avatars, and grade it like a feature. Launch-ready films for SaaS, fintech, and enterprise—without reshoots.
                 </p>
               </div>
             </div>
@@ -353,7 +329,7 @@ export default function HomePage() {
 
                 <div className="mt-4 md:mt-8 max-w-xl">
                   <p className="burned-subtitle font-mono text-sm md:text-lg text-celluloid-cream italic inline-block leading-relaxed">
-                    &quot;We needed security to feel sexy. AdVerse delivered a heist movie for our crypto wallet launch.&quot;
+                    &quot;We uploaded raw office B-roll. AdVerse returned a full heist-style launch film with AI voiceover and avatar host.&quot;
                   </p>
                 </div>
 
@@ -395,7 +371,7 @@ export default function HomePage() {
 
                 <div className="mt-4 md:mt-8 max-w-xl">
                   <p className="burned-subtitle font-mono text-sm md:text-lg text-celluloid-cream italic inline-block leading-relaxed">
-                    &quot;Visualizing 5 Petabytes of data transfer without a single dashboard screenshot. Pure kinetic energy.&quot;
+                    &quot;We shared rough product B-roll. They cut a kinetic story with AI narration and avatar talent—no dashboards needed.&quot;
                   </p>
                 </div>
 
@@ -416,20 +392,20 @@ export default function HomePage() {
             <div className="container mx-auto px-6 md:px-32 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12">
               <div>
                 <span className="font-mono text-red-carpet text-xs tracking-widest uppercase mb-4 block">
-                  Scene 03: The Process
+                  Scene 03: AI-First Pipeline
                 </span>
                 <h2 className="text-4xl md:text-7xl font-oswald uppercase mb-8 md:mb-12 tracking-tighter text-black">
-                  Production
+                  Upload. We
                   <br />
-                  Schedule
+                  Deliver Cinema.
                 </h2>
 
                 <ul className="space-y-4 md:space-y-6 font-display text-2xl md:text-4xl">
                   {[
-                    ["01", "Script & Storyboard"],
-                    ["02", "Principal Photography"],
-                    ["03", "Cinema Grade / Sfx"],
-                    ["04", "Global Distribution"]
+                    ["01", "Upload B-roll & Brand Kit"],
+                    ["02", "AI Script + Voice + Avatar"],
+                    ["03", "Cinematic Cut & Grade"],
+                    ["04", "Delivery & Launch Toolkit"]
                   ].map(([step, label]) => (
                     <li
                       key={step}

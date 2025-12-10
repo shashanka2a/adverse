@@ -9,7 +9,8 @@
 body {
   background-color: #050505;
   color: #e0e0e0;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   cursor: none;
 }
 

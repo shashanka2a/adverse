@@ -29,7 +29,7 @@ const oswald = Oswald({
 export const metadata: Metadata = {
   title: "AdVerse.media | Cinematic B2B",
   description:
-    "AdVerse Media turns B2B brands into cinematic stories. French New Wave aesthetics for SaaS, fintech, and enterprise launches.",
+    "AdVerse Media turns B2B brands into cinematic stories using AI-first production. Upload B-roll and we deliver finished marketing films with voiceovers, AI avatars, and full polish.",
   keywords: [
     "AdVerse",
     "B2B cinema",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "AdVerse.media | Cinematic B2B",
     description:
-      "Stop making content. Start making cinema. Production-grade storytelling for ambitious B2B brands.",
+      "AI-first cinematic marketing. Upload your B-roll and get finished films with voiceovers, AI avatars, and distribution-ready polish.",
     url: "https://adverse.media",
     siteName: "AdVerse Media",
     images: [
