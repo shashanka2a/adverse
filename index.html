@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AdVerse.media | Cinematic B2B</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Oswald:wght@300;500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <!-- Lenis (Updated CDN for stability) -->
+    <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'film-black': '#050505',
+                        'celluloid-cream': '#F2E8D5',
+                        'red-carpet': '#D91E36',
+                        'silver-screen': '#E0E0E0',
+                        'charcoal': '#1A1A1A'
+                    },
+                    fontFamily: {
+                        'display': ['"Playfair Display"', 'serif'],
+                        'mono': ['"Courier Prime"', 'monospace'],
+                        'oswald': ['"Oswald"', 'sans-serif'],
+                    },
+                    cursor: {
+                        'none': 'none',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --cursor-size: 20px;
+        }
+
+        body {
+            background-color: #050505;
+            color: #E0E0E0;
+            overflow: hidden; /* Lenis handles scroll */
+            cursor: none; /* Custom cursor */
+        }
+
+        /* Custom Cursor */
+        #cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--cursor-size);
+            height: var(--cursor-size);
+            border: 1px solid #D91E36;
+            background: rgba(217, 30, 54, 0.1);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s, background-color 0.3s;
+            mix-blend-mode: difference;
+        }
+        
+        #cursor.hovered {
+            width: 80px;
+            height: 80px;
+            background: #D91E36;
+            mix-blend-mode: normal;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #cursor.hovered::after {
+            content: attr(data-text);
+            font-family: 'Courier Prime', monospace;
+            font-size: 10px;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Hide custom cursor on touch devices */
+        @media (hover: none) and (pointer: coarse) {
+            #cursor { display: none; }
+            body { cursor: auto; }
+        }
+
+        /* Film Grain with better blend mode */
+        .film-grain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 40;
+            opacity: 0.05;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Sprockets */
+        .sprocket-strip {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 30px; /* Smaller for mobile */
+            background-color: #000;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            border-bottom: 1px solid #222;
+        }
+        @media (min-width: 768px) {
+            .sprocket-strip { height: 45px; }
+        }
+        .sprocket-top { top: 0; }
+        .sprocket-bottom { bottom: 0; border-top: 1px solid #222; border-bottom: none; }
+
+        .sprocket-hole {
+            width: 16px;
+            height: 12px;
+            background-color: #111;
+            margin: 0 8px;
+            border-radius: 2px;
+            flex-shrink: 0;
+            box-shadow: inset 0 0 2px rgba(255,255,255,0.05);
+            border: 1px solid #222;
+        }
+        @media (min-width: 768px) {
+            .sprocket-hole { width: 28px; height: 20px; margin: 0 16px; border-radius: 4px; }
+        }
+
+        /* Vertical Text Utility */
+        .writing-vertical {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+        }
+
+        /* Subtitles */
+        .burned-subtitle {
+            background: rgba(0,0,0,0.85); /* Darker for better contrast */
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Smooth Text selection */
+        ::selection {
+            background: #D91E36;
+            color: #fff;
+        }
+
+        /* Utility for Parallax Images */
+        .parallax-img {
+            will-change: transform;
+        }
+    </style>
+</head>
+<body class="bg-film-black text-silver-screen antialiased">
+
+    <!-- Custom Cursor -->
+    <div id="cursor"></div>
+
+    <!-- Grain Overlay -->
+    <div class="film-grain"></div>
+
+    <!-- Frame Counter (Fixed UI) -->
+    <div class="fixed top-6 right-6 md:top-10 md:right-10 z-50 font-mono text-xs md:text-sm text-red-carpet mix-blend-screen">
+        <div class="flex items-center gap-2">
+            <span class="animate-pulse w-2 h-2 rounded-full bg-red-carpet inline-block"></span>
+            REC [ <span id="frame-display" class="tabular-nums text-white">001</span> / 006 ]
+        </div>
+    </div>
+
+    <!-- Logo (Fixed UI) -->
+    <div class="fixed top-6 left-6 md:top-8 md:left-8 z-50 mix-blend-difference cursor-none pointer-events-none">
+        <h1 class="font-oswald font-bold text-xl md:text-2xl tracking-tighter text-white">ADVERSE<span class="text-red-carpet">.MEDIA</span></h1>
+    </div>
+
+    <!-- Timeline Scrubber (Fixed UI) -->
+    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[80%] max-w-md h-[2px] bg-white/10 z-50 rounded-full overflow-visible hidden md:block">
+        <div class="absolute inset-y-0 left-0 bg-red-carpet w-0" id="progress-bar">
+            <div class="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-celluloid-cream rounded-full shadow-[0_0_10px_rgba(217,30,54,0.8)]"></div>
+        </div>
+    </div>
+
+    <!-- MAIN SCROLL WRAPPER -->
+    <!-- h-screen acts as the viewport. The inner container slides horizontally. -->
+    <div class="wrapper relative w-full h-screen overflow-hidden">
+        
+        <!-- THE FILM STRIP (Horizontal Track) -->
+        <div id="film-strip" class="flex h-full w-[600vw] relative will-change-transform">
+            
+            <!-- Continuous Sprockets -->
+            <div class="sprocket-strip sprocket-top"></div>
+            <div class="sprocket-strip sprocket-bottom"></div>
+
+            <!-- FRAME 1: HERO / COUNTDOWN -->
+            <div class="panel w-screen h-full relative flex-shrink-0 border-r border-white/5 flex items-center justify-center bg-film-black group" data-cursor-text="START">
+                <div class="absolute inset-0 flex flex-col justify-center items-center z-10">
+                    <!-- Countdown Circle -->
+                    <div class="relative w-[280px] h-[280px] md:w-[500px] md:h-[500px] border border-white/10 rounded-full flex items-center justify-center">
+                        <!-- Spinner -->
+                        <div class="absolute inset-0 border-t border-red-carpet rounded-full animate-[spin_4s_linear_infinite]"></div>
+                        <!-- Crosshairs -->
+                        <div class="absolute w-[1px] h-full bg-white/5"></div>
+                        <div class="absolute w-full h-[1px] bg-white/5"></div>
+                        
+                        <!-- Main Number -->
+                        <span id="countdown" class="text-[8rem] md:text-[16rem] font-oswald font-bold text-celluloid-cream tabular-nums leading-none mt-4">5</span>
+                    </div>
+                    
+                    <div class="absolute bottom-[15%] text-center px-4">
+                        <p class="font-mono text-[10px] md:text-xs uppercase tracking-[0.4em] text-red-carpet mb-4 animate-pulse">Production Mode: Active</p>
+                        <h2 class="text-3xl md:text-6xl font-display italic text-white/90">Cinematic B2B Marketing</h2>
+                    </div>
+                </div>
+                
+                <!-- Scroll Indicator -->
+                <div class="absolute right-0 top-0 h-full w-12 md:w-24 flex items-center justify-center bg-gradient-to-l from-black/80 to-transparent border-l border-white/5 z-20">
+                    <div class="writing-vertical font-mono text-[10px] md:text-xs tracking-widest flex items-center gap-4 text-white/50 animate-bounce">
+                        <span>SCROLL TO ENTER</span>
+                        <i data-lucide="arrow-down" class="transform rotate-90 w-4 h-4"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FRAME 2: MANIFESTO -->
+            <div class="panel w-screen h-full relative flex-shrink-0 border-r border-white/5 flex items-center bg-[#080808]">
+                <!-- Background Texture -->
+                <div class="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-zinc-800 via-black to-black"></div>
+                
+                <div class="container mx-auto px-6 md:px-32 relative z-10 grid md:grid-cols-12 gap-12 items-center">
+                    <div class="md:col-span-8">
+                        <div class="flex items-center gap-4 mb-6 md:mb-10 opacity-0 reveal-text">
+                            <span class="w-12 h-[1px] bg-red-carpet"></span>
+                            <span class="font-mono text-red-carpet text-xs tracking-widest uppercase">Scene 01: The Hook</span>
+                        </div>
+                        
+                        <h2 class="text-4xl md:text-7xl font-display leading-[1.1] mb-8 text-silver-screen opacity-0 reveal-text">
+                            Stop making "content". <br>
+                            <span class="italic text-celluloid-cream relative inline-block">
+                                Start making cinema.
+                                <svg class="absolute -bottom-2 left-0 w-full h-2 text-red-carpet" viewBox="0 0 100 10" preserveAspectRatio="none">
+                                    <path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="2" fill="none" />
+                                </svg>
+                            </span>
+                        </h2>
+                        
+                        <p class="font-mono text-sm md:text-xl text-gray-400 max-w-2xl leading-relaxed opacity-0 reveal-text">
+                            Your B2B product isn't boring. Your presentation is. We apply French New Wave aesthetics to SaaS, Fintech, and Enterprise storytelling. Raw, honest, and impossible to ignore.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Decorative Large Icon -->
+                <div class="absolute right-[-10%] bottom-[-10%] opacity-[0.03] transform -rotate-12 pointer-events-none">
+                    <i data-lucide="clapperboard" size="600"></i>
+                </div>
+            </div>
+
+            <!-- FRAME 3: PORTFOLIO A (Fintech) -->
+            <div class="panel w-screen h-full relative flex-shrink-0 border-r border-white/5 overflow-hidden group interactable" data-cursor-text="WATCH">
+                <!-- Parallax Image Container -->
+                <div class="absolute inset-0 w-[120%] h-full -left-[10%] parallax-img">
+                    <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2670&auto=format&fit=crop" 
+                         class="w-full h-full object-cover grayscale brightness-50 contrast-125 group-hover:grayscale-0 group-hover:brightness-75 transition-all duration-700 ease-out" 
+                         alt="Abstract Architecture">
+                </div>
+                
+                <!-- Gradient Overlay for Readability -->
+                <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90"></div>
+                
+                <div class="absolute inset-0 flex flex-col justify-end pb-24 md:pb-32 px-6 md:px-24">
+                    <div class="relative z-10 transform md:translate-y-8 group-hover:translate-y-0 transition-transform duration-500">
+                        <!-- Giant Background Text -->
+                        <h3 class="hidden md:block text-[12rem] font-oswald text-white opacity-[0.03] absolute -top-40 -left-10 leading-none select-none pointer-events-none">NOIR</h3>
+                        
+                        <div class="flex flex-col md:flex-row md:items-end gap-2 md:gap-6 mb-4">
+                            <h2 class="text-5xl md:text-8xl font-display text-white tracking-tight">Vault.io</h2>
+                            <span class="inline-block border border-white/30 px-3 py-1 font-mono text-[10px] md:text-xs text-white/70 rounded-full mb-2 md:mb-6 w-fit">2024 / FINTECH</span>
+                        </div>
+                        
+                        <div class="mt-4 md:mt-8 max-w-xl">
+                            <p class="burned-subtitle font-mono text-sm md:text-lg text-celluloid-cream italic inline-block leading-relaxed">
+                                "We needed security to feel sexy. AdVerse delivered a heist movie for our crypto wallet launch."
+                            </p>
+                        </div>
+                        
+                        <!-- Buttons -->
+                        <div class="mt-8 md:mt-12 flex gap-4">
+                            <button class="px-8 py-3 bg-red-carpet text-white font-oswald font-bold text-sm hover:bg-white hover:text-black transition-colors uppercase tracking-widest interactable" data-cursor-text="PLAY">
+                                Watch Cut
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FRAME 4: PORTFOLIO B (Data) -->
+            <div class="panel w-screen h-full relative flex-shrink-0 border-r border-white/5 overflow-hidden group interactable" data-cursor-text="WATCH">
+                <!-- Parallax Image -->
+                <div class="absolute inset-0 w-[120%] h-full -left-[10%] parallax-img">
+                    <img src="https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=2659&auto=format&fit=crop" 
+                         class="w-full h-full object-cover grayscale brightness-50 contrast-125 group-hover:grayscale-0 group-hover:brightness-75 transition-all duration-700 ease-out" 
+                         alt="Film Projector Light">
+                </div>
+                
+                <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90"></div>
+                
+                <div class="absolute inset-0 flex flex-col justify-end pb-24 md:pb-32 px-6 md:px-24">
+                    <div class="relative z-10 transform md:translate-y-8 group-hover:translate-y-0 transition-transform duration-500">
+                        <h3 class="hidden md:block text-[12rem] font-oswald text-white opacity-[0.03] absolute -top-40 right-0 leading-none select-none pointer-events-none text-right">DRIFT</h3>
+
+                        <div class="flex flex-col md:flex-row md:items-end gap-2 md:gap-6 mb-4">
+                            <h2 class="text-5xl md:text-8xl font-display text-white tracking-tight">HyperScale</h2>
+                            <span class="inline-block border border-white/30 px-3 py-1 font-mono text-[10px] md:text-xs text-white/70 rounded-full mb-2 md:mb-6 w-fit">2025 / SAAS</span>
+                        </div>
+                        
+                        <div class="mt-4 md:mt-8 max-w-xl">
+                            <p class="burned-subtitle font-mono text-sm md:text-lg text-celluloid-cream italic inline-block leading-relaxed">
+                                "Visualizing 5 Petabytes of data transfer without a single dashboard screenshot. Pure kinetic energy."
+                            </p>
+                        </div>
+                        
+                        <div class="mt-8 md:mt-12 flex gap-4">
+                            <button class="px-8 py-3 bg-red-carpet text-white font-oswald font-bold text-sm hover:bg-white hover:text-black transition-colors uppercase tracking-widest interactable" data-cursor-text="PLAY">
+                                Watch Cut
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FRAME 5: SERVICES (The Script) -->
+            <div class="panel w-screen h-full relative flex-shrink-0 border-r border-white/5 bg-silver-screen text-film-black flex items-center">
+                <div class="container mx-auto px-6 md:px-32 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div>
+                        <span class="font-mono text-red-carpet text-xs tracking-widest uppercase mb-4 block">Scene 03: The Process</span>
+                        <h2 class="text-4xl md:text-7xl font-oswald uppercase mb-8 md:mb-12 tracking-tighter text-black">Production<br>Schedule</h2>
+                        
+                        <ul class="space-y-4 md:space-y-6 font-display text-2xl md:text-4xl">
+                            <li class="flex items-baseline gap-4 group cursor-none interactable" data-cursor-text="STEP 01">
+                                <span class="text-xs md:text-sm font-mono text-red-carpet">01</span>
+                                <span class="border-b-2 border-black/10 group-hover:border-red-carpet transition-all duration-300 transform group-hover:translate-x-2">Script & Storyboard</span>
+                            </li>
+                            <li class="flex items-baseline gap-4 group cursor-none interactable" data-cursor-text="STEP 02">
+                                <span class="text-xs md:text-sm font-mono text-red-carpet">02</span>
+                                <span class="border-b-2 border-black/10 group-hover:border-red-carpet transition-all duration-300 transform group-hover:translate-x-2">Principal Photography</span>
+                            </li>
+                            <li class="flex items-baseline gap-4 group cursor-none interactable" data-cursor-text="STEP 03">
+                                <span class="text-xs md:text-sm font-mono text-red-carpet">03</span>
+                                <span class="border-b-2 border-black/10 group-hover:border-red-carpet transition-all duration-300 transform group-hover:translate-x-2">Cinema Grade / Sfx</span>
+                            </li>
+                            <li class="flex items-baseline gap-4 group cursor-none interactable" data-cursor-text="STEP 04">
+                                <span class="text-xs md:text-sm font-mono text-red-carpet">04</span>
+                                <span class="border-b-2 border-black/10 group-hover:border-red-carpet transition-all duration-300 transform group-hover:translate-x-2">Global Distribution</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Script Format Visual -->
+                    <div class="hidden md:flex flex-col justify-center font-mono text-xs md:text-sm border-l-2 border-black/5 pl-12 h-fit py-8 bg-white/50 backdrop-blur-sm rounded-r-lg">
+                        <p class="mb-4 font-bold text-gray-400">SCRIPT_FINAL_V3.PDF</p>
+                        <p class="mb-4 tracking-wide">INT. CREATIVE AGENCY - NIGHT</p>
+                        <p class="mb-4 max-w-sm">The team is huddled around a monitor. The glow of the screen illuminates their faces.</p>
+                        <p class="mb-4 text-gray-500">// We utilize Arri Alexa cinema cameras.</p>
+                        <p class="mb-4 text-gray-500">// We grade in DaVinci Resolve Studio.</p>
+                        <p class="text-red-carpet font-bold mt-4 tracking-widest">CUT TO BLACK.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FRAME 6: CONTACT (End Credits) -->
+            <div class="panel w-screen h-full relative flex-shrink-0 bg-film-black flex flex-col items-center justify-center text-center">
+                <!-- Rolling credits effect background -->
+                <div class="absolute inset-0 overflow-hidden opacity-10 pointer-events-none">
+                    <div class="animate-[scrollY_20s_linear_infinite] w-full text-center font-oswald text-4xl text-white space-y-24 pt-[100vh]">
+                        <p>DIRECTED BY ADVERSE</p>
+                        <p>PRODUCED BY CLIENTS</p>
+                        <p>EDITED IN LA</p>
+                        <p>MUSIC BY SYNTHWAVE</p>
+                    </div>
+                </div>
+
+                <div class="max-w-4xl px-8 relative z-10">
+                    <h2 class="text-5xl md:text-9xl font-display text-white mb-6 md:mb-8 tracking-tight">The End?</h2>
+                    <p class="font-mono text-sm md:text-xl text-silver-screen mb-12 max-w-lg mx-auto">Or just the beginning of your brand's cinematic universe.</p>
+                    
+                    <a href="#" class="inline-block group relative px-12 md:px-16 py-6 md:py-8 bg-transparent overflow-hidden border border-white/20 interactable" data-cursor-text="HIRE US">
+                        <div class="absolute inset-0 w-full h-full bg-red-carpet group-hover:bg-white transition-colors duration-300 ease-out"></div>
+                        <span class="relative font-oswald text-xl md:text-3xl uppercase tracking-[0.2em] text-white group-hover:text-black z-10 transition-colors duration-300">Start Project</span>
+                    </a>
+
+                    <div class="mt-16 md:mt-24 grid grid-cols-1 md:grid-cols-3 gap-8 text-[10px] md:text-xs font-mono text-gray-500 uppercase tracking-widest">
+                        <div class="hover:text-white transition-colors">
+                            <span class="block text-red-carpet mb-2">Director</span>
+                            AdVerse Media
+                        </div>
+                        <div class="hover:text-white transition-colors">
+                            <span class="block text-red-carpet mb-2">Location</span>
+                            Los Angeles, CA
+                        </div>
+                        <div class="hover:text-white transition-colors">
+                            <span class="block text-red-carpet mb-2">Contact</span>
+                            hello@adverse.media
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="absolute bottom-16 md:bottom-20 font-mono text-[10px] text-gray-700">
+                    © 2025 ADVERSE MEDIA. FILM STRIP CONCEPT V2.
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- 1. SPROCKET GENERATION (Responsive) ---
+            function generateSprockets() {
+                const topStrip = document.querySelector('.sprocket-top');
+                const bottomStrip = document.querySelector('.sprocket-bottom');
+                topStrip.innerHTML = ''; 
+                bottomStrip.innerHTML = '';
+                
+                // Calculate holes
+                const totalWidth = window.innerWidth * 6; // 6 panels
+                const isMobile = window.innerWidth < 768;
+                // Width + Margin
+                const holeSize = isMobile ? (16 + 16) : (28 + 32); 
+                const count = Math.ceil(totalWidth / holeSize);
+
+                const createHole = () => {
+                    const hole = document.createElement('div');
+                    hole.className = 'sprocket-hole';
+                    return hole;
+                };
+
+                for (let i = 0; i < count; i++) {
+                    topStrip.appendChild(createHole());
+                    bottomStrip.appendChild(createHole());
+                }
+            }
+            generateSprockets();
+            window.addEventListener('resize', generateSprockets);
+
+            // --- 2. COUNTDOWN LOGIC ---
+            function startCountdown() {
+                const el = document.getElementById('countdown');
+                let count = 5;
+                
+                const interval = setInterval(() => {
+                    count--;
+                    if(count > 0) {
+                        el.innerText = count;
+                        gsap.fromTo(el, {scale: 1.2, filter: "blur(4px)"}, {scale: 1, filter: "blur(0px)", duration: 0.2, ease: "power2.out"});
+                    } else if (count === 0) {
+                        el.innerText = "ACTN";
+                        el.style.fontSize = window.innerWidth < 768 ? "4rem" : "8rem";
+                        clearInterval(interval);
+                    }
+                }, 1000);
+            }
+            startCountdown();
+
+            // --- 3. CUSTOM CURSOR LOGIC ---
+            const cursor = document.getElementById('cursor');
+            const interactables = document.querySelectorAll('.interactable, a, button');
+            
+            document.addEventListener('mousemove', (e) => {
+                gsap.to(cursor, {
+                    x: e.clientX,
+                    y: e.clientY,
+                    duration: 0.1, // Slight lag for fluid feel
+                    ease: "power2.out"
+                });
+            });
+
+            interactables.forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    cursor.classList.add('hovered');
+                    const text = el.getAttribute('data-cursor-text') || 'VIEW';
+                    cursor.setAttribute('data-text', text);
+                });
+                el.addEventListener('mouseleave', () => {
+                    cursor.classList.remove('hovered');
+                    cursor.setAttribute('data-text', '');
+                });
+            });
+
+            // --- 4. SCROLL & ANIMATION (Lenis + GSAP) ---
+            gsap.registerPlugin(ScrollTrigger);
+
+            const sections = gsap.utils.toArray(".panel");
+            const progressBar = document.getElementById('progress-bar');
+            const frameDisplay = document.getElementById('frame-display');
+            
+            // Check if Lenis is loaded
+            let lenis;
+            if (typeof Lenis !== 'undefined') {
+                // Setup Lenis (Smooth Scroll)
+                lenis = new Lenis({
+                    duration: 1.2,
+                    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                    direction: 'vertical', 
+                    gestureDirection: 'vertical',
+                    smooth: true,
+                    touchMultiplier: 1.5, // Better mobile feel
+                });
+
+                // Sync Lenis
+                lenis.on('scroll', ScrollTrigger.update);
+                gsap.ticker.add((time) => lenis.raf(time * 1000));
+                gsap.ticker.lagSmoothing(0);
+            } else {
+                console.warn("Lenis failed to load, falling back to native scroll.");
+                document.body.style.overflow = "auto";
+            }
+
+            // Horizontal Scroll Animation
+            let scrollTween = gsap.to(sections, {
+                xPercent: -100 * (sections.length - 1),
+                ease: "none",
+                scrollTrigger: {
+                    trigger: ".wrapper",
+                    pin: true,
+                    scrub: 1,
+                    end: () => "+=" + (window.innerWidth * 4), // Scroll distance
+                    onUpdate: (self) => {
+                        // Update Progress Bar
+                        gsap.to(progressBar, {width: `${self.progress * 100}%`, duration: 0.1, ease: "none"});
+                        
+                        // Update Frame Counter
+                        const currentFrame = Math.min(Math.round(self.progress * (sections.length - 1)) + 1, sections.length);
+                        frameDisplay.innerText = `00${currentFrame}`;
+                    }
+                }
+            });
+
+            // Parallax Effect for Images inside panels
+            sections.forEach((section, i) => {
+                const img = section.querySelector('.parallax-img img');
+                if(img) {
+                    gsap.to(img, {
+                        x: "10%", // Move image slightly within container
+                        ease: "none",
+                        scrollTrigger: {
+                            trigger: section,
+                            containerAnimation: scrollTween,
+                            start: "left right",
+                            end: "right left",
+                            scrub: true
+                        }
+                    });
+                }
+                
+                // Text Reveal Animation
+                const texts = section.querySelectorAll('.reveal-text');
+                if(texts.length > 0) {
+                    gsap.to(texts, {
+                        opacity: 1,
+                        y: 0,
+                        duration: 1,
+                        stagger: 0.1,
+                        scrollTrigger: {
+                            trigger: section,
+                            containerAnimation: scrollTween,
+                            start: "left center",
+                            toggleActions: "play none none reverse"
+                        }
+                    });
+                    // Initial state set in CSS or via GSAP set
+                    gsap.set(texts, { y: 30 }); 
+                }
+            });
+        });
+    </script>
+</body>
+</html>
