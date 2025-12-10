@@ -15,6 +15,7 @@ export default function HomePage() {
       : false
   );
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const trackRef = useRef<HTMLDivElement | null>(null);
   const topSprocketRef = useRef<HTMLDivElement | null>(null);
   const bottomSprocketRef = useRef<HTMLDivElement | null>(null);
   const cursorRef = useRef<HTMLDivElement | null>(null);
@@ -50,6 +51,9 @@ export default function HomePage() {
     if (isMobile) return undefined;
 
     const panels = gsap.utils.toArray<HTMLElement>(".panel");
+    const track = trackRef.current;
+    if (!track) return undefined;
+    const refresh = () => ScrollTrigger.refresh();
 
     // Sprocket generation
     const generateSprockets = () => {
@@ -111,6 +115,7 @@ export default function HomePage() {
 
     document.addEventListener("mousemove", moveCursor);
     window.addEventListener("resize", generateSprockets);
+    window.addEventListener("resize", refresh);
     generateSprockets();
 
     // GSAP horizontal scroll
@@ -118,14 +123,18 @@ export default function HomePage() {
     const frameDisplay = frameRef.current;
 
     const ctx = gsap.context(() => {
-      const scrollTween = gsap.to(panels, {
-        xPercent: -100 * (panels.length - 1),
+      const distance = () => track.scrollWidth - window.innerWidth;
+
+      const scrollTween = gsap.to(track, {
+        x: () => -distance(),
         ease: "none",
         scrollTrigger: {
           trigger: ".wrapper",
           pin: true,
           scrub: 1,
-          end: () => `+=${window.innerWidth * (panels.length - 1)}`,
+          end: () => `+=${distance()}`,
+          invalidateOnRefresh: true,
+          anticipatePin: 1,
           onUpdate: (self) => {
             if (progressBar) {
               progressBar.style.width = `${self.progress * 100}%`;
@@ -185,6 +194,7 @@ export default function HomePage() {
       });
       document.removeEventListener("mousemove", moveCursor);
       window.removeEventListener("resize", generateSprockets);
+      window.removeEventListener("resize", refresh);
       ctx.revert();
       ScrollTrigger.killAll();
     };
@@ -233,7 +243,7 @@ export default function HomePage() {
         }`}
         ref={wrapperRef}
       >
-        <div className={trackClass}>
+        <div className={trackClass} ref={trackRef}>
           {!isMobile && (
             <>
               <div className="sprocket-strip sprocket-top" ref={topSprocketRef} />
