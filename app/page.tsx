@@ -125,7 +125,7 @@ export default function HomePage() {
           trigger: ".wrapper",
           pin: true,
           scrub: 1,
-          end: () => `+=${window.innerWidth * 4}`,
+          end: () => `+=${window.innerWidth * (panels.length - 1)}`,
           onUpdate: (self) => {
             if (progressBar) {
               progressBar.style.width = `${self.progress * 100}%`;
@@ -175,6 +175,8 @@ export default function HomePage() {
         }
       });
     }, wrapperRef);
+
+    ScrollTrigger.refresh();
 
     return () => {
       interactables.forEach((element) => {
