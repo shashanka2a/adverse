@@ -211,6 +211,19 @@ export default function HomePage() {
     [isMobile]
   );
 
+  // Toggle body overflow based on mode to allow mobile scrolling
+  useEffect(() => {
+    if (isMobile) {
+      document.body.style.overflow = "auto";
+    } else {
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobile]);
+
   return (
     <main className="relative min-h-screen">
       <div id="cursor" ref={cursorRef} />
@@ -251,7 +264,7 @@ export default function HomePage() {
           )}
 
           {/* Frame 1 */}
-          <section className="panel w-screen h-full relative flex-shrink-0 border-r border-white/5 flex items-center justify-center bg-film-black group" data-cursor-text="START">
+          <section className="panel w-screen min-h-screen h-full relative flex-shrink-0 border-r border-white/5 flex items-center justify-center bg-film-black group" data-cursor-text="START">
             <div className="absolute inset-0 flex flex-col justify-center items-center z-10">
               <div className="relative w-[280px] h-[280px] md:w-[500px] md:h-[500px] border border-white/10 rounded-full flex items-center justify-center">
                 <div className="absolute inset-0 border-t border-red-carpet rounded-full animate-[spin_4s_linear_infinite]" />
@@ -281,7 +294,7 @@ export default function HomePage() {
           </section>
 
           {/* Frame 2 */}
-          <section className="panel w-screen h-full relative flex-shrink-0 border-r border-white/5 flex items-center bg-[#080808]">
+          <section className="panel w-screen min-h-screen h-full relative flex-shrink-0 border-r border-white/5 flex items-center bg-[#080808]">
             <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-zinc-800 via-black to-black" />
 
             <div className="container mx-auto px-6 md:px-32 relative z-10 grid md:grid-cols-12 gap-12 items-center">
@@ -315,7 +328,7 @@ export default function HomePage() {
           </section>
 
           {/* Frame 3 */}
-          <section className="panel w-screen h-full relative flex-shrink-0 border-r border-white/5 overflow-hidden group interactable" data-cursor-text="WATCH">
+          <section className="panel w-screen min-h-screen h-full relative flex-shrink-0 border-r border-white/5 overflow-hidden group interactable" data-cursor-text="WATCH">
             <div className="absolute inset-0 w-[120%] h-full -left-[10%] parallax-img">
               <img
                 src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2670&auto=format&fit=crop"
@@ -357,7 +370,7 @@ export default function HomePage() {
           </section>
 
           {/* Frame 4 */}
-          <section className="panel w-screen h-full relative flex-shrink-0 border-r border-white/5 overflow-hidden group interactable" data-cursor-text="WATCH">
+          <section className="panel w-screen min-h-screen h-full relative flex-shrink-0 border-r border-white/5 overflow-hidden group interactable" data-cursor-text="WATCH">
             <div className="absolute inset-0 w-[120%] h-full -left-[10%] parallax-img">
               <img
                 src="https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=2659&auto=format&fit=crop"
@@ -399,7 +412,7 @@ export default function HomePage() {
           </section>
 
           {/* Frame 5 */}
-          <section className="panel w-screen h-full relative flex-shrink-0 border-r border-white/5 bg-silver-screen text-film-black flex items-center">
+          <section className="panel w-screen min-h-screen h-full relative flex-shrink-0 border-r border-white/5 bg-silver-screen text-film-black flex items-center">
             <div className="container mx-auto px-6 md:px-32 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12">
               <div>
                 <span className="font-mono text-red-carpet text-xs tracking-widest uppercase mb-4 block">
@@ -446,7 +459,7 @@ export default function HomePage() {
           </section>
 
           {/* Frame 6 */}
-          <section className="panel w-screen h-full relative flex-shrink-0 bg-film-black flex flex-col items-center justify-center text-center">
+          <section className="panel w-screen min-h-screen h-full relative flex-shrink-0 bg-film-black flex flex-col items-center justify-center text-center">
             <div className="absolute inset-0 overflow-hidden opacity-10 pointer-events-none">
               <div className="animate-[scrollY_20s_linear_infinite] w-full text-center font-oswald text-4xl text-white space-y-24 pt-[100vh]">
                 <p>DIRECTED BY ADVERSE</p>
